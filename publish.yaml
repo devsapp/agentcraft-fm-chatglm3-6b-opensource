@@ -27,17 +27,14 @@ Parameters:
     llmModel:
       title: 大语言模型
       type: string
-      default: chatglm2-6b-int4
+      default: chatglm3-6b
       description: 选择基础的大语言模型
       enum:
-        - chatglm2-6b-int4
-        - llama2-13b-q4
-        - qwen-7b-chat
- 
+        - chatglm3-6b
     serviceName:
       title: 服务名
       type: string
-      default: fc-llm
+      default: agentcraft-fm-chatglm3-6b-${default-suffix}
       pattern: "^[a-zA-Z_][a-zA-Z0-9-_:/.]{0,127}$"
       description: 您可以根据需要设置不同的服务名，同一个服务会共享部分第三方云产品资源
     mountPointsServerAddr:

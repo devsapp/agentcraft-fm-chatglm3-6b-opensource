@@ -1,0 +1,103 @@
+edition: 1.0.0
+name: fc-llm-api
+vars:
+  region: '{{ region }}'
+  LLM_MODEL: 'chatglm3-6b' # 基础模型及配置路径
+  service:
+    name: '{{ serviceName }}'
+    description: '将开源模型部署到函数计算'
+    {{ if roleArn !== '' && roleArn !== undefined }}role: "{{roleArn}}"{{/if}}
+    # nasConfig: auto
+    # logConfig: auto
+    # vpcConfig: auto
+    nasConfig: # NAS配置, 配置后function可以访问指定NAS
+      userId: 10003 # userID, 默认为10003
+      groupId: 10003 # groupID, 默认为10003
+      mountPoints: # 目录配置
+        - serverAddr: '{{ mountPointsServerAddr }}'
+          nasDir: '/{{ serviceName }}' # NAS目录
+          fcDir: /mnt/auto # 函数计算目录
+    vpcConfig:
+      vpcId: '{{ vpcId }}'
+      securityGroupId: '{{ securityGroupId }}'
+      vswitchIds:
+        - {{ vswitchId }}
+    internetAccess: true
+services:
+  llm-server:  #容器服务
+    component: fc
+    props:
+      region: ${vars.region}
+      service: ${vars.service}
+      function:
+        handler: index.handler
+        timeout: 600
+        diskSize: 10240
+        caPort: 7860
+        instanceType: fc.gpu.ampere.1
+        runtime: custom-container
+        cpu: 8
+        customContainerConfig:
+          args: ''
+          accelerationType: Default
+          image: 'registry.${vars.region}.aliyuncs.com/serverlessdevshanxie/agentcraft-fm-chatglm3-6b:2.0'
+          accelerationInfo:
+            status: Preparing
+          command: ''
+          webServerMode: true
+        instanceConcurrency: 100
+        memorySize: 32768
+        environmentVariables:
+          LLM_MODEL: ${vars.LLM_MODEL}
+        gpuMemorySize: 24576
+        name: llm-server
+        asyncConfiguration: {}
+      triggers:
+        - name: defaultTrigger
+          description: ''
+          type: http
+          qualifier: LATEST
+          config:
+            methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+            authType: anonymous
+            disableURLInternet: false
+      customDomains:
+        - domainName: auto
+          protocol: HTTP
+          routeConfigs:
+            - path: /*
+  llm-model-download:
+    component: fc
+    actions:
+      pre-deploy: 
+        - run: npm i 
+          path: ./code/source-code/download-model2nas
+      post-deploy: 
+        - component: fc ondemand put --qualifier LATEST --max 1
+        - component: fc invoke --service-name ${vars.service.name}  --function-name llm-model-download 
+        - component: 'fc invoke --service-name ${vars.service.name}  --function-name llm-server --invocation-type async' # 模型下载完然后触发服务启动
+    props:
+      region: ${vars.region} # 关于变量的使用方法，可以参考：https://www.serverless-devs.com/serverless-devs/yaml#变量赋值
+      service: ${vars.service}
+      function:
+        name: "llm-model-download"
+        description: 'download model to nas'
+        codeUri: './code/source-code/download-model2nas'
+        runtime: nodejs16
+        timeout: 600
+        memorySize: 3072
+        cpu: 2.0
+        diskSize: 512
+        instanceConcurrency: 100
+        handler: index.handler
+        environmentVariables:
+          modelName: ${vars.LLM_MODEL}
+          region: ${vars.region}
+
+  
+  
+ 

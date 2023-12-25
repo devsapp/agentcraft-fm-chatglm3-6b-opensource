@@ -79,6 +79,8 @@ services:
       post-deploy: 
         - component: fc ondemand put --qualifier LATEST --max 1
         - component: fc invoke --service-name ${vars.service.name}  --function-name llm-model-download 
+        - component: fc nas upload -r ./code/model-repo '/mnt/auto/llm/models/chatglm3-6b'
+          path: ./  
         - component: 'fc invoke --service-name ${vars.service.name}  --function-name llm-server --invocation-type async' # 模型下载完然后触发服务启动
     props:
       region: ${vars.region} # 关于变量的使用方法，可以参考：https://www.serverless-devs.com/serverless-devs/yaml#变量赋值

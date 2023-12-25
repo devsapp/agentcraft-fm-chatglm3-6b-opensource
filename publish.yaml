@@ -37,6 +37,14 @@ Parameters:
       default: agentcraft-fm-chatglm3-6b-${default-suffix}
       pattern: "^[a-zA-Z_][a-zA-Z0-9-_:/.]{0,127}$"
       description: 您可以根据需要设置不同的服务名，同一个服务会共享部分第三方云产品资源
+    vpcConfigType:
+      title: VPC网络配置
+      type: string
+      default: auto
+      description: 配置服务中函数使用的网络，例如配置函数是否可以访问公网，是否可以访问 VPC 中的资源等。如果设置为 auto ，您可以忽略 下面的 VPC 配置
+      enum:
+        - auto
+        - 自定义配置
     mountPointsServerAddr:
       title: NAS挂载点地址
       type: string

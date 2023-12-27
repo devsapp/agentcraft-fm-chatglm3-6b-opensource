@@ -3,7 +3,7 @@ Type: Application
 Name: agentcraft-fm-chatglm3-6b-opensource
 Provider:
   - 阿里云
-Version: dev
+Version: 0.0.1
 Description: 部署大chatglm3-6b
 HomePage: 项目首页地址
 Tags: #标签详情

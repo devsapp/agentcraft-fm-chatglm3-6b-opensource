@@ -1,5 +1,5 @@
 edition: 1.0.0
-name: fc-llm-api
+name: agentcraft-fm-chatglm3-6b-opensource
 vars:
   region: '{{ region }}'
   LLM_MODEL: 'chatglm3-6b' # 基础模型及配置路径
@@ -7,6 +7,10 @@ vars:
     name: '{{ serviceName }}'
     description: '将开源模型部署到函数计算'
     {{ if roleArn !== '' && roleArn !== undefined }}role: "{{roleArn}}"{{/if}}
+    {{if vpcConfigType === 'auto'}}
+    vpcConfig: auto
+    nasConfig: auto
+    {{else}}
     nasConfig: # NAS配置, 配置后function可以访问指定NAS
       userId: 10003 # userID, 默认为10003
       groupId: 10003 # groupID, 默认为10003
@@ -20,6 +24,7 @@ vars:
       vswitchIds:
         - {{ vswitchId }}
     internetAccess: true
+   {{ /if}}
 services:
   llm-server:  #容器服务
     component: fc
